@@ -1,0 +1,168 @@
+MAIN = Instance.new("ScreenGui")
+AssassinFrame = Instance.new("Frame")
+AssassinGUI = Instance.new("TextButton")
+Killall = Instance.new("TextButton")
+ESP = Instance.new("TextButton")
+
+MAIN.Name = "MAIN"
+MAIN.Parent = game.Players.LocalPlayer.PlayerGui
+
+AssassinFrame.Name = "AssassinFrame"
+AssassinFrame.Parent = MAIN
+AssassinFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+AssassinFrame.Position = UDim2.new(0.739049911, 0, 0.0201037619, 0)
+AssassinFrame.Size = UDim2.new(0, 410, 0, 157)
+
+AssassinGUI.Name = "Assassin GUI"
+AssassinGUI.Parent = AssassinFrame
+AssassinGUI.BackgroundColor3 = Color3.new(1, 1, 1)
+AssassinGUI.BackgroundTransparency = 1
+AssassinGUI.BorderSizePixel = 0
+AssassinGUI.Position = UDim2.new(0.255361557, 0, 0, 0)
+AssassinGUI.Size = UDim2.new(0, 200, 0, 50)
+AssassinGUI.Font = Enum.Font.Cartoon
+AssassinGUI.FontSize = Enum.FontSize.Size14
+AssassinGUI.Text = "Assassin GUI"
+AssassinGUI.TextScaled = true
+AssassinGUI.TextSize = 14
+AssassinGUI.TextWrapped = true
+
+Killall.Name = "Kill all"
+Killall.Parent = AssassinFrame
+Killall.BackgroundColor3 = Color3.new(0.694118, 0.490196, 1)
+Killall.Position = UDim2.new(0, 0, 0.393630564, 0)
+Killall.Size = UDim2.new(0, 200, 0, 50)
+Killall.AutoButtonColor = false
+Killall.Font = Enum.Font.Cartoon
+Killall.FontSize = Enum.FontSize.Size14
+Killall.Text = "Kill all - Type \";toggle\" to activate then hold out your knife and spam left click"
+Killall.TextScaled = true
+Killall.TextSize = 14
+Killall.TextWrapped = true
+
+(Killall).MouseButton1Down:connect(function()
+local Active = false
+-- Credit to timeless for help :3 
+-- Credit to this other dude who released sword fight script gave me this idea
+game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Aimbot Started!", "All")
+game.Players.LocalPlayer.Chatted:connect(function(msg)
+   if msg:lower() == ';toggle' then
+       if Active then
+           Active = false
+           print("Stopped")
+           game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Disabled!", "All")
+       else
+           Active = true
+           print("Started")
+           game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Enabled!", "All")
+       end
+   end
+end)
+
+Loop = coroutine.wrap(function()
+   while wait() do
+       pcall(function() 
+           if Active then
+               local Current = game.Players.LocalPlayer.PlayerGui.ScreenGui.UI.Target.Img.PlayerText.Text
+               game.Players[Current].Character.HumanoidRootPart.CFrame = CFrame.new(game.Players.LocalPlayer.Character.Knife.Handle.Position)
+               Players.LocalPlayer.Character.HumanoidRootPart.Anchored = true
+           end
+       end)
+   end
+end)
+
+Loop()
+  end)
+
+
+ESP.Name = "ESP"
+ESP.Parent = Killall
+ESP.BackgroundColor3 = Color3.new(0.694118, 0.490196, 1)
+ESP.Position = UDim2.new(1.05161929, 0, 0.00428015739, 0)
+ESP.Size = UDim2.new(0, 200, 0, 50)
+ESP.AutoButtonColor = false
+ESP.Font = Enum.Font.Cartoon
+ESP.FontSize = Enum.FontSize.Size14
+ESP.Text = "ESP"
+ESP.TextScaled = true
+ESP.TextSize = 14
+ESP.TextWrapped = true
+
+(ESP).MouseButton1Down:connect(function()
+-- Made by Clifford from Intriga Discord -- Edited by Foxxy#2439 --
+
+local localPlayer=game.Players.LocalPlayer
+
+function highlightModel(objObject)
+	for i,v in pairs(objObject:children())do
+		if v:IsA'BasePart'and v.Name~='HumanoidRootPart'then
+			local bHA=Instance.new('BoxHandleAdornment',v)
+			bHA.Adornee=v
+			bHA.Size= v.Name=='Head' and Vector3.new(1.25,1.25,1.25) or v.Size
+			bHA.Color3=v.Name=='Head'and Color3.new(1,0,0)or v.Name=='Torso'and Color3.new(0,1,0)or Color3.new(0,0,1)
+			bHA.Transparency=.5
+			bHA.ZIndex=1
+			bHA.AlwaysOnTop=true
+		end
+		if #v:children()>0 then
+			highlightModel(v)
+		end
+	end
+end
+
+function unHighlightModel(objObject)
+	for i,v in pairs(objObject:children())do
+		if v:IsA'BasePart' and v:findFirstChild'BoxHandleAdornment' then
+			v.BoxHandleAdornment:Destroy()
+		end
+		if #v:children()>0 then
+			unHighlightModel(v)
+		end
+	end
+end
+
+function sortTeamHighlights(objPlayer)
+	repeat wait() until objPlayer.Character
+	if objPlayer.TeamColor~=localPlayer.TeamColor then
+		highlightModel(objPlayer.Character)
+	else
+		unHighlightModel(objPlayer.Character)
+	end
+	if objPlayer~=localPlayer then
+		objPlayer.Changed:connect(function(strProp)
+			if strProp=='TeamColor'then
+				if objPlayer.TeamColor~=localPlayer.TeamColor then
+					unHighlightModel(objPlayer.Character)
+					highlightModel(objPlayer.Character)
+				else
+					unHighlightModel(objPlayer.Character)
+				end
+			end
+		end)
+	else
+		objPlayer.Changed:connect(function(strProp)
+			if strProp=='TeamColor'then
+				wait(.5)
+				for i,v in pairs(game.Players:GetPlayers())do
+					unHighlightModel(v)
+					if v.TeamColor~=localPlayer.TeamColor then
+						highlightModel(v.Character)
+					end
+				end
+			end
+		end)
+	end
+end
+
+for i,v in pairs(game.Players:GetPlayers())do
+	v.CharacterAdded:connect(function()
+		sortTeamHighlights(v)
+	end)
+	sortTeamHighlights(v)
+end
+game.Players.PlayerAdded:connect(function(objPlayer)
+	objPlayer.CharacterAdded:connect(function(objChar)
+		sortTeamHighlights(objPlayer)
+	end)
+end)
+end)
